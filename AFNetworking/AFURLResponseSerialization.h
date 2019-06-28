@@ -36,7 +36,7 @@ id AFJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingOptions 
  */
 @protocol AFURLResponseSerialization <NSObject, NSSecureCoding, NSCopying>
 
-/**
+/** 这是一个协议，只要遵守这个协议，就要实现NSSecureCoding/NSCopying这两个协议
  The response object decoded from the data associated with a specified response.
 
  @param response The response to be processed.
@@ -48,6 +48,11 @@ id AFJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingOptions 
 - (nullable id)responseObjectForResponse:(nullable NSURLResponse *)response
                            data:(nullable NSData *)data
                           error:(NSError * _Nullable __autoreleasing *)error NS_SWIFT_NOTHROW;
+// *** 这个方法来返回序列化后的结果。不管是下边的AFHTTPResponseSerializer，还是它的子类，都遵守这个协议，也就是在各自的实现中实现了这个协议，然后返回了属于自身的一个结果。
+
+// *** ps：根据这个协议，我有了一些启发。当我们在设计一个网络框架的时候，因为业务不同，返回的数据也有很多种，通常的一种做法是直接返回服务器响应的数据，由业务人员自己实现业务。但是如果业务繁杂，这样写出的代码也会很乱，我们不妨采用类似这种协议的设计模式，这样做有两个好处:
+// *** 1. 业务人员和数据人员可以分开。 数据提前约定好名称和内容，写数据人员实现数据部分，写业务人员实现业务部分。
+// *** 2. 左右的数据转换放到协议实现方法中，出现问题，更容易查找问题。
 
 @end
 
@@ -61,7 +66,7 @@ id AFJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingOptions 
 @interface AFHTTPResponseSerializer : NSObject <AFURLResponseSerialization>
 
 - (instancetype)init;
-
+// 设置序列化服务器返回的数据的字符串编码格式
 @property (nonatomic, assign) NSStringEncoding stringEncoding DEPRECATED_MSG_ATTRIBUTE("The string encoding is never used. AFHTTPResponseSerializer only validates status codes and content types but does not try to decode the received data in any way.");
 
 /**
@@ -78,11 +83,14 @@ id AFJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingOptions 
 
  See http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
  */
+// 对序列化进行配置
+// 设置接受的状态码，不在接受范围内的状态码会在验证时返回错误
 @property (nonatomic, copy, nullable) NSIndexSet *acceptableStatusCodes;
 
 /**
  The acceptable MIME types for responses. When non-`nil`, responses with a `Content-Type` with MIME types that do not intersect with the set will result in an error during validation.
  */
+// 设置接受的ContentTypes，不在接受范围内ContentTypes会在验证时返回错误
 @property (nonatomic, copy, nullable) NSSet <NSString *> *acceptableContentTypes;
 
 /**
@@ -96,6 +104,7 @@ id AFJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingOptions 
 
  @return `YES` if the response is valid, otherwise `NO`.
  */
+// 验证服务器返回的数据，这个会使用到acceptableStatusCodes和acceptableContentTypes 这两个属性
 - (BOOL)validateResponse:(nullable NSHTTPURLResponse *)response
                     data:(nullable NSData *)data
                    error:(NSError * _Nullable __autoreleasing *)error;
@@ -105,7 +114,7 @@ id AFJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingOptions 
 #pragma mark -
 
 
-/**
+/** JSON响应
  `AFJSONResponseSerializer` is a subclass of `AFHTTPResponseSerializer` that validates and decodes JSON responses.
 
  By default, `AFJSONResponseSerializer` accepts the following MIME types, which includes the official standard, `application/json`, as well as other commonly-used types:
@@ -120,12 +129,17 @@ id AFJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingOptions 
 
 - (instancetype)init;
 
-/**
+/** 设置json的读取选项
  Options for reading the response JSON data and creating the Foundation objects. For possible values, see the `NSJSONSerialization` documentation section "NSJSONReadingOptions". `0` by default.
+ */
+/**
+ * NSJSONReadingMutableContainers 这个解析json成功后返回一个容器
+ * NSJSONReadingMutableLeaves 返回中的json对象中字符串为NSMutableString
+ * NSJSONReadingAllowFragments 允许JSON字符串最外层既不是NSArray也不是NSDictionary，但必须是有效的JSON Fragment。例如使用这个选项可以解析 @“123” 这样的字符串
  */
 @property (nonatomic, assign) NSJSONReadingOptions readingOptions;
 
-/**
+/** 设置是否过滤NSNull
  Whether to remove keys with `NSNull` values from response JSON. Defaults to `NO`.
  */
 @property (nonatomic, assign) BOOL removesKeysWithNullValues;
@@ -141,7 +155,7 @@ id AFJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingOptions 
 
 #pragma mark -
 
-/**
+/** XMLParser响应
  `AFXMLParserResponseSerializer` is a subclass of `AFHTTPResponseSerializer` that validates and decodes XML responses as an `NSXMLParser` objects.
 
  By default, `AFXMLParserResponseSerializer` accepts the following MIME types, which includes the official standard, `application/xml`, as well as other commonly-used types:
@@ -157,7 +171,7 @@ id AFJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingOptions 
 
 #ifdef __MAC_OS_X_VERSION_MIN_REQUIRED
 
-/**
+/** XMLDocument响应 只在mac os x上使用
  `AFXMLDocumentResponseSerializer` is a subclass of `AFHTTPResponseSerializer` that validates and decodes XML responses as an `NSXMLDocument` objects.
 
  By default, `AFXMLDocumentResponseSerializer` accepts the following MIME types, which includes the official standard, `application/xml`, as well as other commonly-used types:
@@ -187,7 +201,7 @@ id AFJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingOptions 
 
 #pragma mark -
 
-/**
+/** PropertyList响应
  `AFPropertyListResponseSerializer` is a subclass of `AFHTTPResponseSerializer` that validates and decodes XML responses as an `NSXMLDocument` objects.
 
  By default, `AFPropertyListResponseSerializer` accepts the following MIME types:
@@ -221,7 +235,7 @@ id AFJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingOptions 
 
 #pragma mark -
 
-/**
+/** Image响应
  `AFImageResponseSerializer` is a subclass of `AFHTTPResponseSerializer` that validates and decodes image responses.
 
  By default, `AFImageResponseSerializer` accepts the following MIME types, which correspond to the image formats supported by UIImage or NSImage:
@@ -245,7 +259,7 @@ id AFJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingOptions 
  */
 @property (nonatomic, assign) CGFloat imageScale;
 
-/**
+/** 是否对响应的图片自动进行处理
  Whether to automatically inflate response image data for compressed formats (such as PNG or JPEG). Enabling this can significantly improve drawing performance on iOS when used with `setCompletionBlockWithSuccess:failure:`, as it allows a bitmap representation to be constructed in the background rather than on the main thread. `YES` by default.
  */
 @property (nonatomic, assign) BOOL automaticallyInflatesResponseImage;
@@ -255,7 +269,7 @@ id AFJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingOptions 
 
 #pragma mark -
 
-/**
+/** 复合响应
  `AFCompoundSerializer` is a subclass of `AFHTTPResponseSerializer` that delegates the response serialization to the first `AFHTTPResponseSerializer` object that returns an object for `responseObjectForResponse:data:error:`, falling back on the default behavior of `AFHTTPResponseSerializer`. This is useful for supporting multiple potential types and structures of server responses with a single serializer.
  */
 @interface AFCompoundResponseSerializer : AFHTTPResponseSerializer
