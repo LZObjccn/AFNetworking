@@ -202,6 +202,8 @@
 		5F4323DD1BF63CCC003B8749 /* GeoTrust_Global_CA_Root.cer in Resources */ = {isa = PBXBuildFile; fileRef = 5F4323DC1BF63CCC003B8749 /* GeoTrust_Global_CA_Root.cer */; };
 		5F4323DE1BF63CCC003B8749 /* GeoTrust_Global_CA_Root.cer in Resources */ = {isa = PBXBuildFile; fileRef = 5F4323DC1BF63CCC003B8749 /* GeoTrust_Global_CA_Root.cer */; };
 		5F4323DF1BF63CCC003B8749 /* GeoTrust_Global_CA_Root.cer in Resources */ = {isa = PBXBuildFile; fileRef = 5F4323DC1BF63CCC003B8749 /* GeoTrust_Global_CA_Root.cer */; };
+		9C1485B122C76D7F00850802 /* AFNetworkingSummary.h in Headers */ = {isa = PBXBuildFile; fileRef = 9C1485AF22C76D7F00850802 /* AFNetworkingSummary.h */; };
+		9C1485B222C76D7F00850802 /* AFNetworkingSummary.m in Sources */ = {isa = PBXBuildFile; fileRef = 9C1485B022C76D7F00850802 /* AFNetworkingSummary.m */; };
 		E91164651DA6A7AE00DFFF56 /* AFPropertyListRequestSerializerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = E91164641DA6A7AE00DFFF56 /* AFPropertyListRequestSerializerTests.m */; };
 		E91164661DA6A7AE00DFFF56 /* AFPropertyListRequestSerializerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = E91164641DA6A7AE00DFFF56 /* AFPropertyListRequestSerializerTests.m */; };
 		E91164671DA6A7AE00DFFF56 /* AFPropertyListRequestSerializerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = E91164641DA6A7AE00DFFF56 /* AFPropertyListRequestSerializerTests.m */; };
@@ -315,6 +317,8 @@
 		5F4323D41BF63CB0003B8749 /* GoogleComServerTrustChainPath1 */ = {isa = PBXFileReference; lastKnownFileType = folder; path = GoogleComServerTrustChainPath1; sourceTree = "<group>"; };
 		5F4323D81BF63CBA003B8749 /* GoogleComServerTrustChainPath2 */ = {isa = PBXFileReference; lastKnownFileType = folder; path = GoogleComServerTrustChainPath2; sourceTree = "<group>"; };
 		5F4323DC1BF63CCC003B8749 /* GeoTrust_Global_CA_Root.cer */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GeoTrust_Global_CA_Root.cer; sourceTree = "<group>"; };
+		9C1485AF22C76D7F00850802 /* AFNetworkingSummary.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AFNetworkingSummary.h; sourceTree = "<group>"; };
+		9C1485B022C76D7F00850802 /* AFNetworkingSummary.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AFNetworkingSummary.m; sourceTree = "<group>"; };
 		E91164641DA6A7AE00DFFF56 /* AFPropertyListRequestSerializerTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFPropertyListRequestSerializerTests.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -527,6 +531,8 @@
 				299522501BBF125A00859F49 /* AFURLResponseSerialization.m */,
 				299522511BBF125A00859F49 /* AFURLSessionManager.h */,
 				299522521BBF125A00859F49 /* AFURLSessionManager.m */,
+				9C1485AF22C76D7F00850802 /* AFNetworkingSummary.h */,
+				9C1485B022C76D7F00850802 /* AFNetworkingSummary.m */,
 			);
 			path = AFNetworking;
 			sourceTree = "<group>";
@@ -605,6 +611,7 @@
 				299522A81BBF13C700859F49 /* UIImage+AFNetworking.h in Headers */,
 				299522531BBF125A00859F49 /* AFHTTPSessionManager.h in Headers */,
 				2995229C1BBF13C700859F49 /* AFAutoPurgingImageCache.h in Headers */,
+				9C1485B122C76D7F00850802 /* AFNetworkingSummary.h in Headers */,
 				299522581BBF125A00859F49 /* AFSecurityPolicy.h in Headers */,
 				299522561BBF125A00859F49 /* AFNetworkReachabilityManager.h in Headers */,
 				299522A91BBF13C700859F49 /* UIImageView+AFNetworking.h in Headers */,
@@ -1056,6 +1063,7 @@
 				2995229D1BBF13C700859F49 /* AFAutoPurgingImageCache.m in Sources */,
 				299522A31BBF13C700859F49 /* UIActivityIndicatorView+AFNetworking.m in Sources */,
 				2995225D1BBF125A00859F49 /* AFURLResponseSerialization.m in Sources */,
+				9C1485B222C76D7F00850802 /* AFNetworkingSummary.m in Sources */,
 				2995229F1BBF13C700859F49 /* AFImageDownloader.m in Sources */,
 				299522A11BBF13C700859F49 /* AFNetworkActivityIndicatorManager.m in Sources */,
 			);
