@@ -85,22 +85,23 @@
 
  @warning Managers for background sessions must be owned for the duration of their use. This can be accomplished by creating an application-wide or shared singleton instance.
  */
+// *** task一共有4个delegate，只要设置了一个，就代表四个全部设置，有时候一些delegate不会被触发的原因在于这四种delegate是针对不同的URLSession类型和URLSessionTask类型来进行响应的，也就是说不同的类型只会触发这些delegate中的一部分，而不是触发所有的delegate。
 
 NS_ASSUME_NONNULL_BEGIN
 
 @interface AFURLSessionManager : NSObject <NSURLSessionDelegate, NSURLSessionTaskDelegate, NSURLSessionDataDelegate, NSURLSessionDownloadDelegate, NSSecureCoding, NSCopying>
 
-/**
+/** 会话对象，支持后台上传和下载
  The managed session.
  */
 @property (readonly, nonatomic, strong) NSURLSession *session;
 
-/**
+/** 为NSURLSession 绑定一个队列。并且设置这个队列的最大并发数maxConcurrentOperationCount为1.
  The operation queue on which delegate callbacks are run.
  */
 @property (readonly, nonatomic, strong) NSOperationQueue *operationQueue;
 
-/**
+/** 这是序列化响应数据的对象，默认的模式是AFJSONResponseSerializer，而且不能为空。
  Responses sent from the server in data tasks created with `dataTaskWithRequest:success:failure:` and run using the `GET` / `POST` / et al. convenience methods are automatically validated and serialized by the response serializer. By default, this property is set to an instance of `AFJSONResponseSerializer`.
 
  @warning `responseSerializer` must not be `nil`.
@@ -111,7 +112,7 @@ NS_ASSUME_NONNULL_BEGIN
 /// @name Managing Security Policy
 ///-------------------------------
 
-/**
+/** 安全策略，默认是defaultPolicy。
  The security policy used by created session to evaluate server trust for secure connections. `AFURLSessionManager` uses the `defaultPolicy` unless otherwise specified.
  */
 @property (nonatomic, strong) AFSecurityPolicy *securityPolicy;
@@ -121,7 +122,7 @@ NS_ASSUME_NONNULL_BEGIN
 /// @name Monitoring Network Reachability
 ///--------------------------------------
 
-/**
+/** 网络监控管理者。
  The network reachability manager. `AFURLSessionManager` uses the `sharedManager` by default.
  */
 @property (readwrite, nonatomic, strong) AFNetworkReachabilityManager *reachabilityManager;
@@ -131,22 +132,22 @@ NS_ASSUME_NONNULL_BEGIN
 /// @name Getting Session Tasks
 ///----------------------------
 
-/**
+/** 当前被管理的包括data upload download 的任务的集合
  The data, upload, and download tasks currently run by the managed session.
  */
 @property (readonly, nonatomic, strong) NSArray <NSURLSessionTask *> *tasks;
 
-/**
+/** 当前 data 的任务集合
  The data tasks currently run by the managed session.
  */
 @property (readonly, nonatomic, strong) NSArray <NSURLSessionDataTask *> *dataTasks;
 
-/**
+/** 当前 upload 的任务集合
  The upload tasks currently run by the managed session.
  */
 @property (readonly, nonatomic, strong) NSArray <NSURLSessionUploadTask *> *uploadTasks;
 
-/**
+/** 当前 download 的任务集合
  The download tasks currently run by the managed session.
  */
 @property (readonly, nonatomic, strong) NSArray <NSURLSessionDownloadTask *> *downloadTasks;
@@ -155,12 +156,12 @@ NS_ASSUME_NONNULL_BEGIN
 /// @name Managing Callback Queues
 ///-------------------------------
 
-/**
+/** 请求成功后，回调block会在这个队列中调用，如果为空，就在主队列
  The dispatch queue for `completionBlock`. If `NULL` (default), the main queue is used.
  */
 @property (nonatomic, strong, nullable) dispatch_queue_t completionQueue;
 
-/**
+/** 请求成功后，回调block会在这个组中调用，如果为空，就使用一个私有的。
  The dispatch group for `completionBlock`. If `NULL` (default), a private dispatch group is used.
  */
 @property (nonatomic, strong, nullable) dispatch_group_t completionGroup;
@@ -169,7 +170,7 @@ NS_ASSUME_NONNULL_BEGIN
 /// @name Working Around System Bugs
 ///---------------------------------
 
-/**
+/** 这个属性用来解决在后台创建上传任务返回nil的bug，默认为NO，如果设为YES，在后台创建上传任务失败会尝试重新创建该任务
  Whether to attempt to retry creation of upload tasks for background sessions when initial call returns `nil`. `NO` by default.
 
  @bug As of iOS 7.0, there is a bug where upload tasks created for background tasks are sometimes `nil`. As a workaround, if this property is `YES`, AFNetworking will follow Apple's recommendation to try creating the task again.
@@ -182,19 +183,27 @@ NS_ASSUME_NONNULL_BEGIN
 /// @name Initialization
 ///---------------------
 
-/**
+/** 这个方法是指定的初始化方法
  Creates and returns a manager for a session created with the specified configuration. This is the designated initializer.
 
  @param configuration The configuration used to create the managed session.
 
  @return A manager for a newly-created session.
  */
+/**
+ * NS_DESIGNATED_INITIALIZER 这个宏告诉开发者，如果写一个继承A类的子类B，那么就要调用父类A的制定的初始化方法。
+ */
 - (instancetype)initWithSessionConfiguration:(nullable NSURLSessionConfiguration *)configuration NS_DESIGNATED_INITIALIZER;
 
-/**
+/** 根据是否取消未完成的任务来使session失效
  Invalidates the managed session, optionally canceling pending tasks.
 
  @param cancelPendingTasks Whether or not to cancel pending tasks.
+ */
+/**
+ NSURLSession有两个方法：
+ -(void)finishTasksAndInvalidate; 标示待完成所有的任务后失效
+ -(void)invalidateAndCancel; 标示 立即失效，未完成的任务也将结束
  */
 - (void)invalidateSessionCancelingTasks:(BOOL)cancelPendingTasks DEPRECATED_ATTRIBUTE;
 
@@ -274,6 +283,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSURLSessionUploadTask *)uploadTaskWithStreamedRequest:(NSURLRequest *)request
                                                  progress:(nullable void (^)(NSProgress *uploadProgress))uploadProgressBlock
                                         completionHandler:(nullable void (^)(NSURLResponse *response, id _Nullable responseObject, NSError * _Nullable error))completionHandler;
+// *** 分别对应fileURL/data/request 这三种不同的数据源。
 
 ///-----------------------------
 /// @name Running Download Tasks
@@ -520,3 +530,4 @@ FOUNDATION_EXPORT NSString * const AFNetworkingTaskDidCompleteErrorKey;
 FOUNDATION_EXPORT NSString * const AFNetworkingTaskDidCompleteSessionTaskMetrics;
 
 NS_ASSUME_NONNULL_END
+// *** 通过Block和通知，我们就有能力接收到跟网络请求先关的事件和数据。也就是我们可以使用这些来处理我们的业务逻辑
