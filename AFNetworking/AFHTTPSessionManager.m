@@ -335,6 +335,7 @@
     return dataTask;
 }
 
+// 私有方法
 - (NSURLSessionDataTask *)dataTaskWithHTTPMethod:(NSString *)method
                                        URLString:(NSString *)URLString
                                       parameters:(id)parameters

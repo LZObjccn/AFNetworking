@@ -65,6 +65,10 @@
     [NSURL URLWithString:@"foo/" relativeToURL:baseURL];                 // http://example.com/v1/foo
     [NSURL URLWithString:@"/foo/" relativeToURL:baseURL];                // http://example.com/foo/
     [NSURL URLWithString:@"http://example2.com/" relativeToURL:baseURL]; // http://example2.com/
+ *** 在真实开发中，一般都会有一个线上的服务器和一下测试服务器，当然也可能多个。在ios开发中切换开发环境有好几种方法:
+ *** 1. 通过target
+ *** 2. 自定义一个字段HTTPURL，用它来控制路径
+ *** 3. 通过相对路径来切换接口
 
  Also important to note is that a trailing slash will be added to any `baseURL` without one. This would otherwise cause unexpected behavior when constructing URLs using paths without a leading slash.
 
@@ -73,6 +77,9 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+/**
+ * AFHTTPSessionManager是AFURLSessionManager的子类，是专门为HTTP请求设计的。里边涉及到了GET,POST,PUT,DELETE 等等HTTPMehtod。因此我们要想正确的使用各种方法，就要理解每个method的含义。(https://www.cnblogs.com/machao/p/5788425.html)
+ */
 @interface AFHTTPSessionManager : AFURLSessionManager <NSSecureCoding, NSCopying>
 
 /**
@@ -138,7 +145,7 @@ NS_ASSUME_NONNULL_BEGIN
 /// @name Making HTTP Requests
 ///---------------------------
 
-/**
+/** 使用GET 方法获取数据,不带进度
  Creates and runs an `NSURLSessionDataTask` with a `GET` request.
 
  @param URLString The URL string used to create the request URL.
@@ -154,7 +161,7 @@ NS_ASSUME_NONNULL_BEGIN
                       failure:(nullable void (^)(NSURLSessionDataTask * _Nullable task, NSError *error))failure DEPRECATED_ATTRIBUTE;
 
 
-/**
+/** 使用GET方法获取数据,带进度
  Creates and runs an `NSURLSessionDataTask` with a `GET` request.
 
  @param URLString The URL string used to create the request URL.
@@ -171,7 +178,7 @@ NS_ASSUME_NONNULL_BEGIN
                                success:(nullable void (^)(NSURLSessionDataTask *task, id _Nullable responseObject))success
                                failure:(nullable void (^)(NSURLSessionDataTask * _Nullable task, NSError *error))failure DEPRECATED_ATTRIBUTE;
 
-/**
+/** 使用GET方法获取数据,带进度(设置请求头)
  Creates and runs an `NSURLSessionDataTask` with a `GET` request.
  
  @param URLString The URL string used to create the request URL.
@@ -190,7 +197,7 @@ NS_ASSUME_NONNULL_BEGIN
                                success:(nullable void (^)(NSURLSessionDataTask *task, id _Nullable responseObject))success
                                failure:(nullable void (^)(NSURLSessionDataTask * _Nullable task, NSError *error))failure;
 
-/**
+/** 使用HEAD方法获取数据
  Creates and runs an `NSURLSessionDataTask` with a `HEAD` request.
 
  @param URLString The URL string used to create the request URL.
@@ -273,7 +280,7 @@ NS_ASSUME_NONNULL_BEGIN
                                 success:(nullable void (^)(NSURLSessionDataTask *task, id _Nullable responseObject))success
                                 failure:(nullable void (^)(NSURLSessionDataTask * _Nullable task, NSError *error))failure;
 
-/**
+/** 上传数据
  Creates and runs an `NSURLSessionDataTask` with a multipart `POST` request.
 
  @param URLString The URL string used to create the request URL.
