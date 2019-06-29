@@ -1,3 +1,4 @@
+// https://www.cnblogs.com/machao/p/5803850.html
 // AFImageDownloader.h
 // Copyright (c) 2011–2016 Alamofire Software Foundation ( http://alamofire.org/ )
 //
@@ -29,12 +30,13 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+// 图片下载的优先级
 typedef NS_ENUM(NSInteger, AFImageDownloadPrioritization) {
-    AFImageDownloadPrioritizationFIFO,
-    AFImageDownloadPrioritizationLIFO
+    AFImageDownloadPrioritizationFIFO, // 表示先进先出
+    AFImageDownloadPrioritizationLIFO // 表示后进先出
 };
 
-/**
+/** 下载依据, 也就是对一个下载任务的封装
  The `AFImageDownloadReceipt` is an object vended by the `AFImageDownloader` when starting a data task. It can be used to cancel active tasks running on the `AFImageDownloader` session. As a general rule, image data tasks should be cancelled using the `AFImageDownloadReceipt` instead of calling `cancel` directly on the `task` itself. The `AFImageDownloader` is optimized to handle duplicate task scenarios as well as pending versus active downloads.
  */
 @interface AFImageDownloadReceipt : NSObject
@@ -43,6 +45,7 @@ typedef NS_ENUM(NSInteger, AFImageDownloadPrioritization) {
  The data task created by the `AFImageDownloader`.
 */
 @property (nonatomic, strong) NSURLSessionDataTask *task;
+// *** task 表示一个下载任务。一般来说，如果我们要对下载的任务进行操作，就是用这个 task 来完成，并不使用AFImageDownloader来操作。通过[NSUUID UUID]来生成一个唯一的标识来证明AFImageDownloadReceipt的身份
 
 /**
  The unique identifier for the success and failure blocks when duplicate requests are made.
@@ -50,21 +53,25 @@ typedef NS_ENUM(NSInteger, AFImageDownloadPrioritization) {
 @property (nonatomic, strong) NSUUID *receiptID;
 @end
 
-/** The `AFImageDownloader` class is responsible for downloading images in parallel on a prioritized queue. Incoming downloads are added to the front or back of the queue depending on the download prioritization. Each downloaded image is cached in the underlying `NSURLCache` as well as the in-memory image cache. By default, any download request with a cached image equivalent in the image cache will automatically be served the cached image representation.
+/**
+ * AFImageDownloader 这个类对写DownloadManager有很大的借鉴意义。在平时的开发中，当我们使用UIImageView加载一个网络上的图片时，其原理就是把图片下载下来，然后再赋值。这也是AFImageDownloader这个类的核心功能.
  */
+/** The `AFImageDownloader` class is responsible for downloading images in parallel on a prioritized queue. Incoming downloads are added to the front or back of the queue depending on the download prioritization. Each downloaded image is cached in the underlying `NSURLCache` as well as the in-memory image cache. By default, any download request with a cached image equivalent in the image cache will automatically be served the cached image representation.
+ */ // 图片下载任务管理器
+// *** AFImageDownloader是构成获取图片数据的核心类。我们可以设置图片的最大并发数。其中最需要注意的就是如何处理多次重复的请求和请求后数据的去处问题
 @interface AFImageDownloader : NSObject
 
-/**
+/** 图片缓存的地方
  The image cache used to store all downloaded images in. `AFAutoPurgingImageCache` by default.
  */
 @property (nonatomic, strong, nullable) id <AFImageRequestCache> imageCache;
 
-/**
+/** 通过这个属性来获取图片数据
  The `AFHTTPSessionManager` used to download images. By default, this is configured with an `AFImageResponseSerializer`, and a shared `NSURLCache` for all image downloads.
  */
 @property (nonatomic, strong) AFHTTPSessionManager *sessionManager;
 
-/**
+/** 下载的优先级
  Defines the order prioritization of incoming download requests being inserted into the queue. `AFImageDownloadPrioritizationFIFO` by default.
  */
 @property (nonatomic, assign) AFImageDownloadPrioritization downloadPrioritizaton;
@@ -102,7 +109,7 @@ typedef NS_ENUM(NSInteger, AFImageDownloadPrioritization) {
  */
 - (instancetype)initWithSessionConfiguration:(NSURLSessionConfiguration *)configuration;
 
-/**
+/** 初始化的时候配置
  Initializes the `AFImageDownloader` instance with the given session manager, download prioritization, maximum active download count and image cache.
 
  @param sessionManager The session manager to use to download images.
@@ -135,7 +142,7 @@ typedef NS_ENUM(NSInteger, AFImageDownloadPrioritization) {
                                                         success:(nullable void (^)(NSURLRequest *request, NSHTTPURLResponse  * _Nullable response, UIImage *responseObject))success
                                                         failure:(nullable void (^)(NSURLRequest *request, NSHTTPURLResponse * _Nullable response, NSError *error))failure;
 
-/**
+/** 指定receiptID
  Creates a data task using the `sessionManager` instance for the specified URL request.
 
  If the same data task is already in the queue or currently being downloaded, the success and failure blocks are
@@ -155,7 +162,7 @@ typedef NS_ENUM(NSInteger, AFImageDownloadPrioritization) {
                                                         success:(nullable void (^)(NSURLRequest *request, NSHTTPURLResponse  * _Nullable response, UIImage *responseObject))success
                                                         failure:(nullable void (^)(NSURLRequest *request, NSHTTPURLResponse * _Nullable response, NSError *error))failure;
 
-/**
+/** 取消一个请求
  Cancels the data task in the receipt by removing the corresponding success and failure blocks and cancelling the data task if necessary.
 
  If the data task is pending in the queue, it will be cancelled if no other success and failure blocks are registered with the data task. If the data task is currently executing or is already completed, the success and failure blocks are removed and will not be called when the task finishes.
