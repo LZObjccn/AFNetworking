@@ -41,9 +41,11 @@
     if (self = [self init]) {
         self.image = image;
         self.identifier = identifier;
-
+        // 图片的尺寸
         CGSize imageSize = CGSizeMake(image.size.width * image.scale, image.size.height * image.scale);
+        // 每个像素占用4个字节
         CGFloat bytesPerPixel = 4.0;
+        // 这个是指图片中有多少个像素，这个名称bytesPerSize改为pixelsPerSize是不是更加贴切呢？
         CGFloat bytesPerSize = imageSize.width * imageSize.height;
         self.totalBytes = (UInt64)bytesPerPixel * (UInt64)bytesPerSize;
         self.lastAccessDate = [NSDate date];
@@ -64,14 +66,18 @@
 
 @end
 
+/**
+ * 既然是图片的临时缓存类,那么我们应该把图片缓存到什么地方呢? 答案就是一个字典中.值得注意的是,我们缓存使用的是一个同步的队列.
+ */
 @interface AFAutoPurgingImageCache ()
-@property (nonatomic, strong) NSMutableDictionary <NSString* , AFCachedImage*> *cachedImages;
-@property (nonatomic, assign) UInt64 currentMemoryUsage;
-@property (nonatomic, strong) dispatch_queue_t synchronizationQueue;
+@property (nonatomic, strong) NSMutableDictionary <NSString* , AFCachedImage*> *cachedImages; // 存放图片
+@property (nonatomic, assign) UInt64 currentMemoryUsage; // 当前使用的容量
+@property (nonatomic, strong) dispatch_queue_t synchronizationQueue; // 队列
 @end
 
 @implementation AFAutoPurgingImageCache
 
+// 通过这个方法，我们就能够看出默认的缓存容量的大小为100M，清除后保存容量为60M
 - (instancetype)init {
     return [self initWithMemoryCapacity:100 * 1024 * 1024 preferredMemoryCapacity:60 * 1024 * 1024];
 }
@@ -141,6 +147,12 @@
         }
     });
 }
+/**
+ * 这个方法是核心方法，我们重点介绍下，在这个方法中，一共做了两件事:
+ * 1. 把图片加入到缓存字典中（注意字典中可能存在identifier的情况），然后计算当前的容量大小
+ * 2. 处理容量超过最大容量的异常情况。分为下边几个步骤： 1.比较容量是否超过最大容量 2.计算将要清楚的缓存容量 3.把所有缓存的图片放到一个数组中 4.对这个数组按照最后访问时间进行排序，优先保留最后访问的数据 5.遍历数组，移除图片（当已经移除的数据大于应该移除的数据时停止）
+ ps: 这里不得不讲一下 dispatch_barrier_async 这个方法。barrier 这个单词的意思是障碍，拦截的意思，也即是说dispatch_barrier_async一定是有拦截事件的作用
+ */
 
 - (BOOL)removeImageWithIdentifier:(NSString *)identifier {
     __block BOOL removed = NO;
@@ -188,6 +200,7 @@
     return [self imageWithIdentifier:[self imageCacheKeyFromURLRequest:request withAdditionalIdentifier:identifier]];
 }
 
+// 通过这个方法可以看出，使用NSURLRequest进行缓存的时候，也只是使用了request.URL.absoluteString + additionalIdentifier 来作为缓存字典的key。
 - (NSString *)imageCacheKeyFromURLRequest:(NSURLRequest *)request withAdditionalIdentifier:(NSString *)additionalIdentifier {
     NSString *key = request.URL.absoluteString;
     if (additionalIdentifier != nil) {
